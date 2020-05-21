@@ -28,6 +28,6 @@ public class UserControllerImpl {
 
     @PostMapping("/user")
     public UserDTO saveUser(@RequestBody UserDTO user) {
-        return mfsmdao.createEntity("User", user, UserDTO.class);
+        return mfsmdao.createEntity("User", "/users", user, UserDTO.class);
     }
 }

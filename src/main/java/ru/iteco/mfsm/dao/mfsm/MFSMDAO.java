@@ -21,16 +21,26 @@ public class MFSMDAO {
     @Qualifier("BEAN_mfsmRestTemplate")
     private RestTemplate mfsmRestTemplate;
 
-    public <T extends MFSMEntity> T createEntity(String name, T entity, Class<T> valueType) {
+    public <T extends MFSMEntity> T createEntity(String name, String context, T entity, Class<T> valueType) {
+        return send(name, context, HttpMethod.POST, entity, valueType);
+    }
+
+    public <T extends MFSMEntity> T updateEntity(String name, String context, T entity, Class<T> valueType) {
+        return send(name, context, HttpMethod.PUT, entity, valueType);
+    }
+
+    public <T extends MFSMEntity> T send(String name, String context, HttpMethod method, T entity, Class<T> valueType) {
         try {
+            System.out.println("MFSMDAO.send {name=" + name + ", context=" + context + ", method=" + method + ", entity=" + entity + "}");
             Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
             ObjectMapper mapper = new ObjectMapper();
-            String json = "{" + name + ":" + mapper.writerWithDefaultPrettyPrinter().writeValueAsString(entity) + "}";
+            String json = "{\"" + name + "\":" + mapper.writerWithDefaultPrettyPrinter().writeValueAsString(entity) + "}";
             HttpHeaders headers = new HttpHeaders();
             headers.add("Content-Type", "application/json;charset=UTF-8");
             HttpEntity<String> request = new HttpEntity<>(json, headers);
-            ResponseEntity<String> response = mfsmRestTemplate.exchange("", HttpMethod.POST, request, String.class);
+            System.out.println("MFSMDAO.send json=" + json);
+            ResponseEntity<String> response = mfsmRestTemplate.exchange(context, method, request, String.class);
 
             JsonParser parser = mapper.getFactory().createParser(response.getBody());
             TreeNode node = mapper.readTree(parser);
